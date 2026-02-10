@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rentwise Matcher - Project Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f7; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #7c3aed; font-size: 32px; margin-bottom: 10px; }
+        .status { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .status.on-track { background: #dcfce7; color: #166534; }
+        .status.at-risk { background: #fef3c7; color: #92400e; }
+        .deadline { font-size: 18px; color: #666; margin-top: 10px; }
+        .deadline strong { color: #ef4444; }
+        
+        .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .column { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .column h2 { font-size: 18px; color: #333; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .count { background: #7c3aed; color: white; padding: 4px 12px; border-radius: 12px; font-size: 14px; }
+        
+        .card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: move; }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card h3 { font-size: 16px; color: #111; margin-bottom: 8px; }
+        .card p { font-size: 14px; color: #666; margin-bottom: 12px; line-height: 1.5; }
+        .card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .tag.priority-high { background: #fee2e2; color: #991b1b; }
+        .tag.priority-medium { background: #fef3c7; color: #92400e; }
+        .tag.priority-low { background: #e0e7ff; color: #3730a3; }
+        .tag.effort-small { background: #dcfce7; color: #166534; }
+        .tag.effort-medium { background: #fef3c7; color: #92400e; }
+        .tag.effort-large { background: #fee2e2; color: #991b1b; }
+        
+        .flowchart { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .flowchart h2 { color: #7c3aed; margin-bottom: 20px; }
+        .flow-visual { display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; }
+        .flow-step { min-width: 250px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center; }
+        .flow-step.tier1 { border-color: #22c55e; background: #f0fdf4; }
+        .flow-step.tier2 { border-color: #f59e0b; background: #fffbeb; }
+        .flow-step.tier3 { border-color: #ec4899; background: #fdf2f8; }
+        .flow-step h4 { margin-bottom: 10px; color: #111; }
+        .flow-step p { font-size: 13px; color: #666; margin-bottom: 8px; }
+        .arrow { font-size: 24px; color: #7c3aed; align-self: center; }
+        
+        .notes { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .notes h2 { color: #7c3aed; margin-bottom: 20px; }
+        .note-section { margin-bottom: 25px; }
+        .note-section h3 { font-size: 18px; color: #333; margin-bottom: 12px; }
+        .note-section ul { margin-left: 20px; }
+        .note-section li { margin-bottom: 8px; color: #666; line-height: 1.6; }
+        
+        @media print { body { background: white; } .board, .flowchart, .notes { box-shadow: none; border: 1px solid #ddd; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏠 Rentwise Matcher - Project Tracker</h1>
+            <div style="display: flex; gap: 15px; align-items: center; margin-top: 15px;">
+                <span class="status on-track">On Track</span>
+                <span class="deadline">Target Launch: <strong>End of Week (Feb 14, 2026)</strong></span>
+            </div>
+            <p style="margin-top: 15px; color: #666;">Last Updated: February 10, 2026, 4:22 AM CST</p>
+        </header>
+
+        <div class="flowchart">
+            <h2>📊 Matching Flow - Current State</h2>
+            <div class="flow-visual">
+                <div class="flow-step">
+                    <h4>Step 1: Preferences</h4>
+                    <p><strong>Status:</strong> ✅ Complete</p>
+                    <p>Location, budget, bedrooms, pets, amenities</p>
+                    <p style="color: #22c55e; font-weight: 600;">Production Ready</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="flow-step tier1">
+                    <h4>Tier 1: Perfect Match</h4>
+                    <p><strong>Status:</strong> ✅ Complete</p>
+                    <p>All criteria met</p>
+                    <p>Shows: 1-5 matches</p>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="flow-step tier2">
+                    <h4>Tier 2: Close Match</h4>
+                    <p><strong>Status:</strong> ✅ Complete</p>
+                    <p>1-2 criteria relaxed</p>
+                    <p>Shows: 1-3 matches</p>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="flow-step tier3">
+                    <h4>Tier 3: Fallback</h4>
+                    <p><strong>Status:</strong> ✅ Complete</p>
+                    <p>Top 3 rated (any location)</p>
+                    <p>Shows: 3 matches</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="flow-step">
+                    <h4>Step 2: Contact Form</h4>
+                    <p><strong>Status:</strong> ✅ Complete</p>
+                    <p>Name, email, phone</p>
+                    <p>Tier-specific messaging</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="flow-step">
+                    <h4>Step 3: Results</h4>
+                    <p><strong>Status:</strong> ✅ Complete</p>
+                    <p>Match cards with photos, ratings, specials</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="board">
+            <div class="column">
+                <h2>✅ Done <span class="count">12</span></h2>
+                
+                <div class="card">
+                    <h3>V3 Enterprise Design Locked</h3>
+                    <p>Syne font, animated underline, sticky footer, social proof popup</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Tiered Matching System</h3>
+                    <p>3-tier logic (Perfect/Close/Fallback) with dynamic messaging</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Location Lifestyle Mapping</h3>
+                    <p>Maps user lifestyle choices to apartment locations</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Social Proof Popup System</h3>
+                    <p>10 rotating messages (🔥 emoji, DFW cities)</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Two-Step Form Flow</h3>
+                    <p>Preferences → Contact capture with preview</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Tier-Specific Messaging</h3>
+                    <p>Dynamic headlines/CTAs based on match quality</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>CRO Optimizations</h3>
+                    <p>Dual social proof, warm special badges, micro-interactions</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Move-In Special Badges</h3>
+                    <p>Orange/amber gradient with 🎁 emoji</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Amenity Icons & Selection</h3>
+                    <p>8 amenities with icons, checkbox bounce animation</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Pet Question Visual Update</h3>
+                    <p>Radio buttons with 🐾 and 🚫 icons</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Match Count Updates</h3>
+                    <p>Tier 1: up to 5 matches, properly sorted</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Documentation Complete</h3>
+                    <p>MATCHING-FLOW.md, flowcharts, Google Doc export</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <h2>🚧 In Progress <span class="count">2</span></h2>
+                
+                <div class="card">
+                    <h3>Header Copy Updates</h3>
+                    <p>Refine Tier 2/3 headlines for clarity (Austin reviewing options)</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Testing All Three Tiers</h3>
+                    <p>Verify Perfect/Close/Fallback logic with various inputs</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <h2>📋 To Do <span class="count">8</span></h2>
+                
+                <div class="card">
+                    <h3>Integrate Rentwise Incentives</h3>
+                    <p>Show $200-250 rebate OR "Full Fridge On Us" + discounted closet organization from partners</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Plug in Real Apartment Database</h3>
+                    <p>Replace 3 mock apartments with partner's commission-paying listings</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Email Verification</h3>
+                    <p>Basic validation (format check) or API verification (ZeroBounce/etc)</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Phone Number Verification</h3>
+                    <p>Format validation + optionally SMS verification code</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Form Submission Backend</h3>
+                    <p>Send lead data to CRM/database (webhook, API, or email)</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>SMS Texting Integration</h3>
+                    <p>Actually send matches via SMS (Twilio/similar)</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Analytics Tracking</h3>
+                    <p>Track tier distribution, conversion rates, drop-off points</p>
+                    <div class="card-meta">
+                        <span class="tag priority-medium">Important</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Production Deployment</h3>
+                    <p>Deploy to Netlify/Vercel with custom domain</p>
+                    <div class="card-meta">
+                        <span class="tag priority-high">Critical</span>
+                        <span class="tag effort-small">Small</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <h2>🔮 Future/Nice-to-Have <span class="count">5</span></h2>
+                
+                <div class="card">
+                    <h3>Weekly Alert System Backend</h3>
+                    <p>Actually send weekly emails when new matches appear</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Hidden Gems Database</h3>
+                    <p>50+ boutique apartments for Tier 3 users</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>A/B Testing Framework</h3>
+                    <p>Test different headlines, CTAs, tiers</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-medium">Medium</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>User Dashboard</h3>
+                    <p>Let users manage alerts, save favorites</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Admin Panel</h3>
+                    <p>Manage apartments, view leads, track conversions</p>
+                    <div class="card-meta">
+                        <span class="tag priority-low">Nice-to-have</span>
+                        <span class="tag effort-large">Large</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <h2>📝 Critical Notes for Flight-Ready Launch</h2>
+            
+            <div class="note-section">
+                <h3>🎯 Must-Have for Launch (This Week)</h3>
+                <ul>
+                    <li><strong>Real apartment data:</strong> Partner's commission-paying database plugged in</li>
+                    <li><strong>Form submission backend:</strong> Leads captured somewhere (CRM, email, webhook)</li>
+                    <li><strong>SMS integration OR disclaimer:</strong> Either send texts or update copy to "We'll contact you"</li>
+                    <li><strong>Basic validation:</strong> Email format check, phone format check</li>
+                    <li><strong>Production deployment:</strong> Live on a domain, not localhost</li>
+                    <li><strong>Mobile testing:</strong> Verify all three tiers work on mobile</li>
+                </ul>
+            </div>
+
+            <div class="note-section">
+                <h3>✅ Current Strengths</h3>
+                <ul>
+                    <li>Enterprise-grade design (V3 locked)</li>
+                    <li>Never shows "zero results" - always a path forward</li>
+                    <li>Tiered messaging optimized for conversion (Perfect/Close/Fallback)</li>
+                    <li>Social proof system (popup + sticky footer)</li>
+                    <li>Mobile-responsive, polished UX</li>
+                    <li>CRO-optimized copy (no uppercase shouting, clear CTAs)</li>
+                </ul>
+            </div>
+
+            <div class="note-section">
+                <h3>⚠️ Known Limitations (Can Launch With These)</h3>
+                <ul>
+                    <li>Only 3 apartments in mock database (partner will provide real data)</li>
+                    <li>No email/phone verification (basic validation only)</li>
+                    <li>No actual SMS sending yet (can be manual for now)</li>
+                    <li>No weekly alert backend (can be manual/CRM-based initially)</li>
+                    <li>No analytics tracking (can add post-launch)</li>
+                </ul>
+            </div>
+
+            <div class="note-section">
+                <h3>🧪 Testing Checklist</h3>
+                <ul>
+                    <li>Test Tier 1 (Perfect Match): Urban City Living, $3000 budget, no amenities</li>
+                    <li>Test Tier 2 (Close Match): Urban City Living, $1500 budget (too low)</li>
+                    <li>Test Tier 3 (Fallback): College Town, $1000 budget, 5+ amenities</li>
+                    <li>Test mobile on iPhone/Android (all tiers)</li>
+                    <li>Test form submission (verify lead capture)</li>
+                    <li>Test with partner's real apartment data</li>
+                    <li>Test edge cases (no location selected, zero budget, etc.)</li>
+                </ul>
+            </div>
+
+            <div class="note-section">
+                <h3>🎁 Rentwise Incentive Strategy - NEW</h3>
+                <ul>
+                    <li><strong>Cash Rebate Option:</strong> $200-250 rebate for customers who sign a lease through Rentwise</li>
+                    <li><strong>"Full Fridge On Us" Option:</strong> $250 credit toward filling their fridge with food (alternative to cash rebate)</li>
+                    <li><strong>Partner Services:</strong> Discounted closet organization services from Rentwise partners</li>
+                    <li><strong>Placement Strategy:</strong> Show incentives at Step 2 (contact form) as additional motivation to convert</li>
+                    <li><strong>Messaging Approach:</strong> "We'll help you save on move-in costs AND give you [incentive] when you sign"</li>
+                    <li><strong>Visual Treatment:</strong> Highlight incentives with icons (💰 for rebate, 🍱 for Full Fridge, 🏠 for services)</li>
+                    <li><strong>Copy Suggestions:</strong>
+                        <ul>
+                            <li>"Move in smart, walk away with cash" (rebate focus)</li>
+                            <li>"Find your place + fill your fridge—on us" (Full Fridge focus)</li>
+                            <li>"Save on move-in specials, get rewarded for moving in" (hybrid)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Legal Considerations:</strong> Terms & conditions for rebate eligibility (lease signed, move-in confirmed, etc.)</li>
+                </ul>
+            </div>
+
+            <div class="note-section">
+                <h3>💡 Partner Integration Notes</h3>
+                <ul>
+                    <li><strong>Data format needed:</strong> JSON array matching current structure (location, apartmentName, priceRange, amenities, etc.)</li>
+                    <li><strong>File location:</strong> Replace <code>/rentwise-mvp-data.json</code> or import directly into <code>app/page.tsx</code></li>
+                    <li><strong>Commission tracking:</strong> Consider adding <code>commissionRate</code> field to each apartment</li>
+                    <li><strong>Image URLs:</strong> Ensure apartment images are hosted and accessible</li>
+                    <li><strong>Apartments.com links:</strong> Update with real property URLs</li>
+                </ul>
+            </div>
+
+            <div class="note-section">
+                <h3>🚀 Launch Day Checklist</h3>
+                <ul>
+                    <li>[ ] Real apartment database loaded and tested</li>
+                    <li>[ ] Form submission backend configured (leads going somewhere)</li>
+                    <li>[ ] Custom domain configured (rentwise.com subdomain?)</li>
+                    <li>[ ] Mobile testing complete (iOS + Android)</li>
+                    <li>[ ] All three tiers tested with real data</li>
+                    <li>[ ] Error handling added (what if form fails?)</li>
+                    <li>[ ] Privacy policy linked (TCPA compliance for SMS)</li>
+                    <li>[ ] Partner approval on copy/design</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add current date
+        document.addEventListener('DOMContentLoaded', function() {
+            const deadline = new Date('2026-02-14');
+            const today = new Date();
+            const daysRemaining = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysRemaining <= 7) {
+                const deadlineEl = document.querySelector('.deadline strong');
+                deadlineEl.textContent += ` (${daysRemaining} days remaining!)`;
+            }
+        });
+    </script>
+</body>
+</html>
